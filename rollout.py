@@ -60,21 +60,16 @@ class ROLLOUT(object):
         rollout_results = []
         with tf.variable_scope("LSTM"):
             tf.get_variable_scope().reuse_variables()
-            for k in range(rollout_num):
+            for _ in range(rollout_num):
                 rollout_list = []
                 for rollout_step in range(1, self.sequence_length):
-                    rollout_sents = []
-
-                    # before defined step, just copy the generated token
-                    for i in range(rollout_step):
-                        rollout_sents.append(self.x[:, i])
-
+                    rollout_sents = [self.x[:, i] for i in range(rollout_step)]
                     # prepare hidden state
                     h_t = self.state_list[rollout_step-1]
                     x_tp1 = self.processed_x[rollout_step-1]
 
                     # after defined step, random sample the next token (sampling step)
-                    for i in range(self.sequence_length - rollout_step):
+                    for _ in range(self.sequence_length - rollout_step):
                         h_t = self.g_recurrent_unit(x_tp1, h_t)
                         o_t = self.g_output_unit(h_t)
                         log_prob = tf.log(tf.nn.softmax(o_t))
@@ -105,8 +100,7 @@ class ROLLOUT(object):
         samples = np.reshape(rollout_results, [-1, self.sequence_length])
         feed = {ranker.input_x: samples, ranker.dropout_keep_prob: 1.0, ranker.input_ref: ref}
         scores = sess.run(ranker.all_rank_score, feed)
-        rewards = np.transpose(np.mean(scores, axis = 0))
-        return rewards
+        return np.transpose(np.mean(scores, axis = 0))
 
     # def get_reward(self, sess, input_x, rollout_num, ranker, rank_data_loader):
 

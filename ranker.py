@@ -20,9 +20,9 @@ def linear(input_, output_size, scope=None):
 
     shape = input_.get_shape().as_list()
     if len(shape) != 2:
-        raise ValueError("Linear is expecting 2D arguments: %s" % str(shape))
+        raise ValueError(f"Linear is expecting 2D arguments: {str(shape)}")
     if not shape[1]:
-        raise ValueError("Linear expects shape[1] of arguments: %s" % str(shape))
+        raise ValueError(f"Linear expects shape[1] of arguments: {str(shape)}")
     input_size = shape[1]
 
     # Now the computation.
@@ -97,7 +97,7 @@ class Ranker(object):
             # Create a convolution + maxpool layer for each filter size
             pooled_outputs = []
             for filter_size, num_filter in zip(self.filter_sizes, self.num_filters):
-                with tf.variable_scope("conv-maxpool-%s" % filter_size):
+                with tf.variable_scope(f"conv-maxpool-{filter_size}"):
                     # Convolution Layer
                     filter_shape = [filter_size, self.embedding_size, 1, num_filter]
                     W = tf.get_variable("W", filter_shape, "float32", random_uniform_init)
@@ -118,7 +118,7 @@ class Ranker(object):
                         padding='VALID',
                         name="pool")
                     pooled_outputs.append(pooled)
-            
+
             # Combine all the pooled features
             num_filters_total = sum(self.num_filters)
             h_pool = tf.concat(pooled_outputs, 3)

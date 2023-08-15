@@ -103,9 +103,7 @@ class TARGET_LSTM(object):
         )  # batch_size
 
     def generate(self, session):
-        # h0 = np.random.normal(size=self.hidden_dim)
-        outputs = session.run(self.gen_x)
-        return outputs
+        return session.run(self.gen_x)
 
     def init_matrix(self, shape):
         return tf.random_normal(shape, stddev=1.0)

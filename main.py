@@ -65,8 +65,6 @@ def main():
     generate_samples(sess, target_lstm, FLAGS.gen_pre_batch_size, opt.generated_num, opt.positive_file)
     gen_data_loader.create_batches(opt.positive_file)
 
-    #################################################################pretraining with MLE
-     # pre-train generator
     logging.info('Start pre-training generator')
     for epoch in xrange(FLAGS.pre_g_epoch):
         loss = pre_train_epoch(sess, generator, gen_data_loader)
@@ -84,7 +82,7 @@ def main():
         rank_data_loader.load_train_data(opt.positive_file, opt.negative_file)
         for _ in range(3):
             rank_data_loader.reset_pointer()
-            for it in xrange(rank_data_loader.num_batch):
+            for _ in xrange(rank_data_loader.num_batch):
                 x_batch, y_batch, ref = rank_data_loader.next_batch()
                 feed = {
                     ranker.input_x: x_batch,
@@ -96,11 +94,11 @@ def main():
         if epoch % 5 == 0:
             logging.info("Pretrain ranker epoch: %d, training loss: %0.4f" % (epoch, loss))
 
-    
+
     # # # Save all params to disk.
     save_path = saver.save(sess, "./save/pre_model.ckpt")
-    print("pretrain Model saved in file: %s" % save_path)
-    
+    print(f"pretrain Model saved in file: {save_path}")
+
     # modify generator batch size for adversarial training
     tf.reset_default_graph()
     generator = Generator(opt, FLAGS, pretrain = False)
@@ -113,7 +111,7 @@ def main():
     sess = tf.Session(config=config)
     sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
-    
+
     # load parameters
     saver.restore(sess, "./save/pre_model.ckpt")
     likelihood_data_loader = Gen_Data_loader(FLAGS.gen_batch_size) # For testing
@@ -125,7 +123,7 @@ def main():
     logging.info('Start adversarial training.')
     for epoch in range(FLAGS.epoch):
         # Train the generator for one step
-        for it in range(FLAGS.g_step):
+        for _ in range(FLAGS.g_step):
             samples = generator.generate(sess)
             generate_samples(sess, generator, FLAGS.gen_batch_size, opt.generated_num, opt.negative_file)
             rank_data_loader.load_train_data(opt.positive_file, opt.negative_file)
@@ -144,11 +142,11 @@ def main():
         rollout.update_params()
 
         # Train the ranker
-        for idx in range(FLAGS.r_step):
+        for _ in range(FLAGS.r_step):
             generate_samples(sess, generator, FLAGS.gen_batch_size, opt.generated_num, opt.negative_file)
             rank_data_loader.load_train_data(opt.positive_file, opt.negative_file)
 
-            for it in xrange(rank_data_loader.num_batch):
+            for _ in xrange(rank_data_loader.num_batch):
                 x_batch, y_batch, ref = rank_data_loader.next_batch()
                 feed = {
                     ranker.input_x: x_batch,

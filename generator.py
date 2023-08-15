@@ -54,7 +54,7 @@ class Generator(object):
             # the first step
             h_t = self.g_recurrent_unit(tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0)
             o_t = self.g_output_unit(h_t)
-            for i in range(self.seq_len):
+            for _ in range(self.seq_len):
                 log_prob = tf.log(tf.nn.softmax(o_t))
                 next_token = tf.cast(tf.reshape(tf.multinomial(log_prob, 1), [self.batch_size]), tf.int32)
                 x_tp1 = tf.nn.embedding_lookup(self.g_embeddings, next_token)  # batch x emb_dim
@@ -81,19 +81,18 @@ class Generator(object):
                 if i == 0:
                     # the first step
                     h_t = self.g_recurrent_unit(tf.nn.embedding_lookup(self.g_embeddings, self.start_token), self.h0)
-                    o_t = self.g_output_unit(h_t)
                 else:
                     # tf.get_variable_scope().reuse_variables()
                     # x_tp1 = ta_emb_x.read(i-1)
                     # h_t = self.g_recurrent_unit(x_tp1, h_t)
                     h_t = self.g_recurrent_unit(self.processed_x[i-1, :, :], h_t)
-                    o_t = self.g_output_unit(h_t)
-                    #############
+                                #############
+                o_t = self.g_output_unit(h_t)
                 target_logit = o_t
                 cross_entropy = tf.nn.sparse_softmax_cross_entropy_with_logits(logits = target_logit,
                                 labels = self.x[:, i])
                 predictions = predictions.write(i, tf.clip_by_value(cross_entropy, 0.0, 45.0))
-                # predictions.append(tf.clip_by_value(cross_entropy, 0.0, 45.0))
+                        # predictions.append(tf.clip_by_value(cross_entropy, 0.0, 45.0))
 
         self.predictions = tf.reshape(predictions.stack(), [-1])
         # self.predictions = tf.reshape(predictions, [-1])
@@ -125,12 +124,12 @@ class Generator(object):
     ##########################################
     #basic models for LSTMs
     def generate(self, sess):
-        outputs = sess.run(self.gen_x)
-        return outputs
+        return sess.run(self.gen_x)
 
     def pretrain_step(self, sess, x):
-        outputs = sess.run([self.pretrain_updates, self.pretrain_loss], feed_dict={self.x: x})
-        return outputs
+        return sess.run(
+            [self.pretrain_updates, self.pretrain_loss], feed_dict={self.x: x}
+        )
 
     def init_matrix(self, shape):
         return tf.random_normal(shape, stddev=0.1)

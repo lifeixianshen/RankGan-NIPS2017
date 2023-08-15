@@ -33,7 +33,7 @@ def create_logging(FLAGS):
     head = ''
     if not os.path.exists('./log'):
         os.makedirs('./log')
-    log_file = '{}_{}.log'.format(FLAGS.prefix, time.strftime('%Y-%m-%d-%H-%M'))
+    log_file = f"{FLAGS.prefix}_{time.strftime('%Y-%m-%d-%H-%M')}.log"
     logging.basicConfig(filename=os.path.join('./log', log_file), level=logging.DEBUG, format=head)
     console = logging.StreamHandler()
     logging.getLogger('').addHandler(console)
@@ -58,7 +58,7 @@ def target_loss(sess, target_lstm, data_loader):
     nll = []
     data_loader.reset_pointer()
 
-    for it in xrange(data_loader.num_batch):
+    for _ in xrange(data_loader.num_batch):
         batch = data_loader.next_batch()
         g_loss = sess.run(target_lstm.pretrain_loss, {target_lstm.x: batch})
         nll.append(g_loss)
@@ -71,7 +71,7 @@ def pre_train_epoch(sess, trainable_model, data_loader):
     supervised_g_losses = []
     data_loader.reset_pointer()
 
-    for it in xrange(data_loader.num_batch):
+    for _ in xrange(data_loader.num_batch):
         batch = data_loader.next_batch()
         _, g_loss = trainable_model.pretrain_step(sess, batch)
         supervised_g_losses.append(g_loss)
